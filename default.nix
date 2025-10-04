@@ -6,5 +6,6 @@
   modules = import ./modules;
   overlays = import ./overlays;
 
+  deeplx = pkgs.callPackage ./pkgs/deeplx.nix { };
   kvlibadwaita-kvantum = pkgs.callPackage ./pkgs/kvlibadwaita-kvantum.nix { };
 }
