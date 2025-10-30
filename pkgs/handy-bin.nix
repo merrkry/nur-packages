@@ -4,12 +4,12 @@
   lib,
 }:
 let
-  version = "0.1.5.3";
-  pname = "Jackify";
-  id = "com.jackify.app";
+  version = "0.5.3";
+  pname = "Handy";
 
   src = fetchurl {
-    url = "https://github.com/Omni-guides/Jackify/releases/download/v${version}/${pname}.AppImage";
+    url = "https://github.com/cjpais/Handy:q
+    /releases/download/v${version}/${pname}.AppImage";
     hash = "sha256-UVmLVIYcEbIuhPI94eQ9gbG/yra6WviJAOGFtE7hq90=";
   };
 
@@ -26,8 +26,8 @@ appimageTools.wrapType2 {
     ]);
 
   extraInstallCommands = ''
-    install -Dm444 ${appimageContents}/${id}.desktop -t $out/share/applications
-    install -Dm444 ${appimageContents}/${id}.png -t $out/share/pixmaps
+    install -Dm444 ${appimageContents}/${pname}.desktop -t $out/share/applications
+    install -Dm444 ${appimageContents}/${pname}.png -t $out/share/pixmaps
   '';
 
   meta = {
