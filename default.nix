@@ -8,6 +8,6 @@
 
   deeplx = pkgs.callPackage ./pkgs/deeplx.nix { };
   handy-bin = pkgs.callPackage ./pkgs/handy-bin.nix { };
-  jackify = pkgs.callPackage ./pkgs/jackify.nix { };
+  jackify-bin = pkgs.callPackage ./pkgs/jackify-bin.nix { };
   kvlibadwaita-kvantum = pkgs.callPackage ./pkgs/kvlibadwaita-kvantum.nix { };
 }
