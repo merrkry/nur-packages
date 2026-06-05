@@ -23,6 +23,23 @@
   writableTmpDirAsHomeHook,
   writeDarwinBundle,
   xcbuild,
+  enableAzureDevOps ? false,
+  azure-cli,
+  azure-cli-extensions,
+  enableBitbucket ? false,
+  bitbucket-cli,
+  enableClaude ? false,
+  claude-code,
+  enableCodex ? false,
+  codex,
+  enableGitHub ? false,
+  gh,
+  enableGit ? false,
+  git,
+  enableGitLab ? false,
+  glab,
+  enableJujutsu ? false,
+  jujutsu,
 }:
 
 stdenv.mkDerivation (
@@ -35,6 +52,22 @@ stdenv.mkDerivation (
         "assets/prod/black-macos-1024.png"
       else
         "assets/prod/black-universal-1024.png";
+    runtimePackages =
+      lib.optionals enableAzureDevOps [
+        azure-cli.withExtensions
+        [ azure-cli-extensions.azure-devops ]
+      ]
+      ++ lib.optionals enableBitbucket [ bitbucket-cli ]
+      ++ lib.optionals enableClaude [ claude-code ]
+      ++ lib.optionals enableCodex [ codex ]
+      ++ lib.optionals enableGitHub [ gh ]
+      ++ lib.optionals enableGit [ git ]
+      ++ lib.optionals enableGitLab [ glab ]
+      ++ lib.optionals enableJujutsu [ jujutsu ];
+    runtimePathWrapperArgs = lib.optionalString (runtimePackages != [ ]) ''
+      \
+        --prefix PATH : ${lib.makeBinPath runtimePackages}
+    '';
     extraEnvWrapperArgs = lib.escapeShellArgs (
       lib.concatLists (
         lib.mapAttrsToList (name: value: [
@@ -84,21 +117,21 @@ stdenv.mkDerivation (
         runHook postInstall
       '';
 
-      outputHash = "sha256-0wA39cSxybKPbZ1xXf+mcI4QSXJhLcNQ6x+o2xvLuq8=";
+      outputHash = lib.fakeHash;
       outputHashMode = "recursive";
     };
   in
   {
     pname = "t3code";
-    version = "0.0.24";
+    version = "0.0.25";
     strictDeps = true;
     __structuredAttrs = true;
 
     src = fetchFromGitHub {
       owner = "merrkry";
       repo = "t3code";
-      rev = "a670c458258eec1b354b03f8a9c074dfc9ab52a3";
-      hash = "sha256-unMTgFHQ2iZmsSToyR15sxla0gtEwHU6qQaA3/KEqYI=";
+      rev = "85f9f16aa8e3909533592781267a2dd8c1b41f6d";
+      hash = "sha256-HZy3KgRIN9YW9MJqOFcnLvwmgnqaOK8KekCURZi1vak=";
     };
 
     postPatch = ''
@@ -180,11 +213,11 @@ stdenv.mkDerivation (
       find "$out"/libexec/t3code -xtype l -delete
 
       makeWrapper ${lib.getExe nodejs} "$out"/bin/t3code ${extraEnvWrapperArgs} \
-        --add-flags "$out"/libexec/t3code/apps/server/dist/bin.mjs
+        --add-flags "$out"/libexec/t3code/apps/server/dist/bin.mjs ${runtimePathWrapperArgs}
 
       makeWrapper ${lib.getExe electron} "$out"/bin/t3code-desktop ${extraEnvWrapperArgs} \
         --add-flags "$out"/libexec/t3code/apps/desktop/dist-electron/main.cjs \
-        --inherit-argv0
+        --inherit-argv0 ${runtimePathWrapperArgs}
     ''
     + lib.optionalString stdenv.hostPlatform.isDarwin ''
       mkdir --parents "$out/Applications/${appName}.app/Contents/"{MacOS,Resources}
