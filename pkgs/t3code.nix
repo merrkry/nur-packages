@@ -1,14 +1,15 @@
 {
-  bun,
+  cacert,
   cctools,
   copyDesktopItems,
-  electron_40,
+  electron_41,
   extraEnv ? {
     LANG = "en_US.UTF-8";
     T3CODE_DISABLE_AUTO_UPDATE = 1;
     T3CODE_DISABLE_PROVIDER_UPDATE_CHECK = 1;
   },
   fetchFromGitHub,
+  fetchPnpmDeps,
   installShellFiles,
   lib,
   libicns,
@@ -17,9 +18,10 @@
   nix-update-script,
   node-gyp,
   nodejs,
+  pnpm_10,
+  pnpmConfigHook,
   python3,
   stdenv,
-  stdenvNoCC,
   writableTmpDirAsHomeHook,
   writeDarwinBundle,
   xcbuild,
@@ -46,7 +48,8 @@ stdenv.mkDerivation (
   finalAttrs:
   let
     appName = "T3 Code (Alpha)";
-    electron = electron_40;
+    electron = electron_41;
+    pnpm = pnpm_10;
     desktopIcon =
       if stdenv.hostPlatform.isDarwin then
         "assets/prod/black-macos-1024.png"
@@ -77,55 +80,16 @@ stdenv.mkDerivation (
         ]) extraEnv
       )
     );
-    nodeModules = stdenvNoCC.mkDerivation {
-      pname = "${finalAttrs.pname}-node_modules";
-      inherit (finalAttrs) src version strictDeps;
-
-      nativeBuildInputs = [
-        bun
-        nodejs
-        writableTmpDirAsHomeHook
-      ];
-
-      dontConfigure = true;
-      dontFixup = true;
-
-      buildPhase = ''
-        runHook preBuild
-
-        # Use hoisted linker: Bun's default/isolated layout can race and omit
-        # cyclic peer dependency bin links (e.g. update-browserslist-db →
-        # browserslist). A manual .bin/browserslist symlink under .bun did not
-        # reliably fix builds; see https://github.com/oven-sh/bun/pull/29014.
-        bun install \
-          --linker=hoisted \
-          --cpu="*" \
-          --ignore-scripts \
-          --no-progress \
-          --frozen-lockfile \
-          --os="*"
-
-        runHook postBuild
-      '';
-
-      installPhase = ''
-        runHook preInstall
-
-        mkdir --parents $out
-        cp --recursive node_modules $out
-
-        runHook postInstall
-      '';
-
-      outputHash = lib.fakeHash;
-      outputHashMode = "recursive";
-    };
   in
   {
     pname = "t3code";
     version = "0.0.25";
     strictDeps = true;
     __structuredAttrs = true;
+    NIX_SSL_CERT_FILE = "${cacert}/etc/ssl/certs/ca-bundle.crt";
+    NODE_EXTRA_CA_CERTS = "${cacert}/etc/ssl/certs/ca-bundle.crt";
+    SSL_CERT_FILE = "${cacert}/etc/ssl/certs/ca-bundle.crt";
+    SYSTEM_CERTIFICATE_PATH = "${cacert}/etc/ssl/certs/ca-bundle.crt";
 
     src = fetchFromGitHub {
       owner = "merrkry";
@@ -140,12 +104,22 @@ stdenv.mkDerivation (
                        'const host = process.env.HOST?.trim() || "127.0.0.1";'
     '';
 
+    pnpmDeps = fetchPnpmDeps {
+      inherit (finalAttrs) pname src;
+      inherit pnpm;
+      fetcherVersion = 3;
+      hash = "sha256-Cwzn5LtfJiRKBtV6OpvZ+dxvvjsth99lLcOwfm0s1wc=";
+    };
+
     nativeBuildInputs = [
-      bun
+      cacert
+      git
       installShellFiles
       makeBinaryWrapper
       node-gyp
       nodejs
+      pnpm
+      pnpmConfigHook
       python3
       writableTmpDirAsHomeHook
     ]
@@ -160,42 +134,46 @@ stdenv.mkDerivation (
     configurePhase = ''
       runHook preConfigure
 
-      cp --recursive ${nodeModules}/. .
+      # pnpmConfigHook is registered as a postConfigure hook and populates
+      # node_modules from pnpmDeps. The remaining configure steps patch and
+      # rebuild selected installed dependencies.
+      runHook postConfigure
 
       chmod --recursive u+rwX node_modules
       patchShebangs node_modules
 
       # Upstream bumps package.json versions after tagging releases, then applies
       # the same bump in the release workflow before building artifacts.
-      bun scripts/update-release-package-versions.ts ${finalAttrs.version}
+      node scripts/update-release-package-versions.ts ${finalAttrs.version}
 
-      # Compile node-pty's native addon (hoisted into node_modules).
+      pnpm exec vp config
+      pnpm exec effect-tsgo patch
+
+      # Compile node-pty's native addon. pnpm installs with lifecycle scripts
+      # disabled for reproducibility, so run node-pty's install steps manually.
       export npm_config_nodedir=${nodejs}
-      cd node_modules/node-pty
+      nodePtyPackageJson="$(node --eval "process.stdout.write(require.resolve('node-pty/package.json', { paths: [process.cwd() + '/apps/server'] }))")"
+      cd "$(dirname "$nodePtyPackageJson")"
       node-gyp rebuild
       node scripts/post-install.js
       cd -
-
-      runHook postConfigure
     '';
 
     buildPhase = ''
       runHook preBuild
 
-      for app in web server desktop; do
-        bun run --cwd apps/"$app" build
-      done
+      pnpm run build:desktop
 
       runHook postBuild
     '';
 
-    # Bun vendors many prebuilt native artifacts for non-host platforms, and
-    # some of those binaries are statically linked. Let fixup handle wrappers,
+    # pnpm vendors prebuilt native artifacts for non-host platforms, and some
+    # of those binaries are statically linked. Let fixup handle wrappers,
     # shebangs, and stripping, but skip patchelf on the vendored tree.
     dontPatchELF = true;
     # The tmpdir audit hook also shells out to patchelf while scanning every
     # vendored ELF for leaked build paths. That produces spurious warnings on
-    # Bun's static foreign-platform binaries.
+    # static foreign-platform binaries.
     noAuditTmpdir = true;
 
     installPhase = ''
@@ -203,6 +181,8 @@ stdenv.mkDerivation (
 
       mkdir --parents "$out"/libexec/t3code/apps/desktop "$out"/libexec/t3code/apps/server
       cp --recursive --no-preserve=mode node_modules "$out"/libexec/t3code
+      cp --recursive --no-preserve=mode apps/server/node_modules "$out"/libexec/t3code/apps/server
+      cp --recursive --no-preserve=mode apps/desktop/node_modules "$out"/libexec/t3code/apps/desktop
       cp --recursive --no-preserve=mode apps/server/dist "$out"/libexec/t3code/apps/server
       cp --recursive --no-preserve=mode apps/desktop/dist-electron "$out"/libexec/t3code/apps/desktop
 
@@ -261,11 +241,11 @@ stdenv.mkDerivation (
     ];
 
     passthru = {
-      inherit nodeModules;
+      inherit (finalAttrs) pnpmDeps;
       updateScript = nix-update-script {
         extraArgs = [
           "--subpackage"
-          "nodeModules"
+          "pnpmDeps"
         ];
       };
     };
