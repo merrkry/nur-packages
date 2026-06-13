@@ -83,7 +83,7 @@ stdenv.mkDerivation (
   in
   {
     pname = "t3code";
-    version = "0.0.25";
+    version = "0.0.27";
     strictDeps = true;
     __structuredAttrs = true;
     NIX_SSL_CERT_FILE = "${cacert}/etc/ssl/certs/ca-bundle.crt";
@@ -94,8 +94,8 @@ stdenv.mkDerivation (
     src = fetchFromGitHub {
       owner = "merrkry";
       repo = "t3code";
-      rev = "85f9f16aa8e3909533592781267a2dd8c1b41f6d";
-      hash = "sha256-HZy3KgRIN9YW9MJqOFcnLvwmgnqaOK8KekCURZi1vak=";
+      rev = "16cbcbd415ecdd1055c41063242eab5543042487";
+      hash = "sha256-El6hbvjz/ejpnkPQCvSVekUJ/vy2n7oYbfBoEPpvJL8=";
     };
 
     postPatch = ''
@@ -108,7 +108,7 @@ stdenv.mkDerivation (
       inherit (finalAttrs) pname src;
       inherit pnpm;
       fetcherVersion = 3;
-      hash = "sha256-Cwzn5LtfJiRKBtV6OpvZ+dxvvjsth99lLcOwfm0s1wc=";
+      hash = "sha256-suN0BPR6tK+ZH2oFOZxhr3m3ZZrDflp0r8Btt26xC2Y=";
     };
 
     nativeBuildInputs = [
@@ -254,7 +254,7 @@ stdenv.mkDerivation (
       description = "Minimal web GUI for coding agents";
       homepage = "https://t3.codes";
       downloadPage = "https://t3.codes/download";
-      changelog = "https://github.com/pingdotgg/t3code/releases/tag/${finalAttrs.src.tag}";
+      changelog = "https://github.com/pingdotgg/t3code/releases/tag/v${finalAttrs.version}";
       license = lib.licenses.mit;
       maintainers = with lib.maintainers; [
         iamanaws
