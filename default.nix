@@ -8,4 +8,5 @@
 
   fcitx5-vinput-lite = pkgs.callPackage ./pkgs/fcitx5-vinput-lite { };
   kvlibadwaita-kvantum = pkgs.callPackage ./pkgs/kvlibadwaita-kvantum.nix { };
+  omarchy-shell = pkgs.callPackage ./pkgs/omarchy-shell { };
 }

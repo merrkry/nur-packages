@@ -1,5 +1,4 @@
 {
-  # Add your NixOS modules here
-  #
-  # my-module = ./my-module;
+  homeManager = import ./home-manager;
+  nixos = import ./nixos;
 }

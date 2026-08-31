@@ -1,0 +1,18 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+omarchy-shell lock lock >/dev/null
+
+# Password entry should start from the first configured layout.
+niri msg action switch-layout 0 >/dev/null 2>&1 || true
+
+if pgrep -x 1password >/dev/null && command -v 1password >/dev/null; then
+  (
+    flock -n 9 || exit 0
+    timeout --kill-after=1s 3s 1password --lock >/dev/null 2>&1 || true
+  ) 9>"${XDG_RUNTIME_DIR:-/tmp}/omarchy-1password-lock.lock" &
+fi
+
+# A pending screensaver must not cover the lock surface.
+pkill -f '[o]rg.omarchy.screensaver' 2>/dev/null || true
