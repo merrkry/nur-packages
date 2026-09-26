@@ -4,7 +4,9 @@
   rustPlatform,
 }:
 
-rustPlatform.buildRustPackage {
+rustPlatform.buildRustPackage (finalAttrs: {
+  __structuredAttrs = true;
+
   pname = "symseek";
   version = "0-unstable-2026-09-04";
 
@@ -16,6 +18,8 @@ rustPlatform.buildRustPackage {
   };
 
   cargoHash = "sha256-01frd9F7blm7cb2IQV6h+aOCnzYpZpp81CSERHEC5jA=";
+
+  strictDeps = true;
 
   # The CLI test expects verbose output from the spawned binary.
   preCheck = ''
@@ -29,4 +33,4 @@ rustPlatform.buildRustPackage {
     maintainers = with lib.maintainers; [ merrkry ];
     mainProgram = "symseek";
   };
-}
+})

@@ -6,7 +6,9 @@
   rustPlatform,
 }:
 
-rustPlatform.buildRustPackage {
+rustPlatform.buildRustPackage (finalAttrs: {
+  __structuredAttrs = true;
+
   pname = "yaasm";
   version = "0-unstable-2026-09-05";
 
@@ -19,6 +21,7 @@ rustPlatform.buildRustPackage {
 
   cargoHash = "sha256-WDPpCFU5186p1UEdjdnshdVJ4vdHbf7sRYbT9R5i9lY=";
 
+  strictDeps = true;
   nativeBuildInputs = [ makeWrapper ];
   nativeCheckInputs = [ git ];
 
@@ -33,4 +36,4 @@ rustPlatform.buildRustPackage {
     maintainers = with lib.maintainers; [ merrkry ];
     mainProgram = "yaasm";
   };
-}
+})
