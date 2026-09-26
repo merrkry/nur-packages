@@ -28,7 +28,9 @@ jobs:
 
       - name: Set up binary cache
         id: niks3
-        uses: Mic92/niks3-action@v1
+        # TODO: Switch back to @v1 after it updates its bundled niks3 from 1.7.0 to 1.13.0.
+        # The newer action exports the CLI and OIDC helper used to refresh cache TTLs.
+        uses: Mic92/niks3-action@952f6bcde3f794cc498ad9e96d8d491777870829
         with:
           server-url: https://niks3-api.tsubasa.moe
 
