@@ -74,6 +74,7 @@ components.nix-everything.overrideAttrs (
 
     passthru = old.passthru // {
       inherit version src components;
+      packagingSource = src;
       updateScript = [
         (lib.getExe githubReleaseUpdater)
         "--owner"
