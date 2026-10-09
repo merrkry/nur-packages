@@ -8,14 +8,13 @@ rec {
 
   # Top-level packages must evaluate without import from derivation (IFD).
   # Packages requiring IFD belong in impure.
-  impure = {
-    determinate-nix = pkgs.callPackage ./pkgs/determinate-nix { };
-  };
+  impure = { };
 
   bookerly = pkgs.callPackage ./pkgs/bookerly.nix { };
   chatgpt = pkgs.callPackage ./pkgs/chatgpt { };
   codex-bin = pkgs.callPackage ./pkgs/codex-bin { };
   delta = pkgs.callPackage ./pkgs/delta { };
+  determinate-nix = pkgs.callPackage ./pkgs/determinate-nix { };
   fcitx5-vinput-lite = pkgs.callPackage ./pkgs/fcitx5-vinput-lite { };
   kache = pkgs.callPackage ./pkgs/kache.nix { };
   kvlibadwaita-kvantum = pkgs.callPackage ./pkgs/kvlibadwaita-kvantum.nix { };
