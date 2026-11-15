@@ -27,7 +27,7 @@ jobs:
         uses: NixOS/nix-installer-action@v1
 
       - name: Use niks3 as a substituter
-        uses: Mic92/niks3-action@v1
+        uses: Mic92/niks3-action@01820a2b97ac01531ad9fb859db94af63ffcbd83 # v1.10.0
         with:
           server-url: https://niks3-api.tsubasa.moe
           skip-push: true
