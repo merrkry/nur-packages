@@ -5,6 +5,7 @@ import hashlib
 import json
 import shlex
 import subprocess
+import sys
 import tomllib
 from pathlib import Path
 
@@ -19,9 +20,7 @@ def cache_key(targets: dict[str, dict[str, str]]) -> str:
         ["nix", "eval", "--impure", "--raw", "--expr", "builtins.currentSystem"],
         text=True,
     )
-    attributes = {name: target["attribute"] for name, target in targets.items()} | {
-        "_checker": "nix-hash",
-    }
+    attributes = {name: target["attribute"] for name, target in targets.items()}
     fields = []
     for name, attribute in attributes.items():
         path = ".".join(json.dumps(part) for part in attribute.split("."))
@@ -38,7 +37,12 @@ def cache_key(targets: dict[str, dict[str, str]]) -> str:
         ],
         text=True,
     )
-    inputs = json.dumps({"system": system, "drvs": json.loads(output)}, sort_keys=True)
+    # The store path of this script identifies the checker and the tools it runs.
+    checker = str(Path(sys.argv[0]).resolve())
+    inputs = json.dumps(
+        {"system": system, "checker": checker, "drvs": json.loads(output)},
+        sort_keys=True,
+    )
     return hashlib.sha256(inputs.encode()).hexdigest()
 
 

@@ -32,7 +32,6 @@ class HashTasksTest(unittest.TestCase):
             )
             (root / "content.txt").write_text("old")
             (root / "hash.txt").write_text(sri("old") + "\n")
-            (root / "tool.txt").write_text("tool-v1")
             bash = json.dumps(os.environ["NIX_HASH_TEST_BASH"])
             system = os.environ["NIX_HASH_TEST_SYSTEM"]
             (root / "flake.nix").write_text(
@@ -78,14 +77,6 @@ class HashTasksTest(unittest.TestCase):
                     builtins.replaceStrings [ "\\n" ] [ "" ]
                       (builtins.readFile ./hash.txt)
                   );
-                  nix-hash = mkDerivation {
-                    inherit system;
-                    name = "hash-task-tool";
-                    src = ./tool.txt;
-                    builder = "${bash}/bin/bash";
-                    args = [ "-c" "exit 1" ];
-                  };
-                  test-nix-hash = nix-hash;
                 }
                 """.replace("NAME", root.name).replace("HASH", sri("old"))
             )
@@ -113,9 +104,6 @@ class HashTasksTest(unittest.TestCase):
             original = package.read_bytes(), (root / "hash.txt").read_bytes()
             (root / "unrelated.txt").write_text("unrelated change")
             self.assertEqual(key, task("key").splitlines()[0])
-            (root / "tool.txt").write_text("tool-v2")
-            self.assertNotEqual(key, task("key").splitlines()[0])
-            (root / "tool.txt").write_text("tool-v1")
             (root / "content.txt").write_text("new")
             stale_key = task("key").splitlines()[0]
             self.assertNotEqual(key, stale_key)
