@@ -87,7 +87,8 @@
         github-release-updater = pkgs.callPackage ./lib/github-release-updater.nix { };
       });
 
-      overlays.default = import ./overlay.nix;
+      # Upstream Nix requires the conventional argument names.
+      overlays.default = final: prev: import ./overlay.nix final prev;
 
       formatter = forAllSystems (pkgs: pkgs.nixfmt-rs);
     };
