@@ -29,13 +29,13 @@ rustPlatform.buildRustPackage (finalAttrs: {
   strictDeps = true;
 
   pname = "vite-plus";
-  version = "1.3.0";
+  version = "1.7.0";
 
   src = fetchFromGitHub {
     owner = "voidzero-dev";
     repo = "vite-plus";
     tag = "v${finalAttrs.version}";
-    hash = "sha256-xUDSCpI8tb4/+VYKz9lmIIXZcoaKzj5VbO11Q5n+JHc=";
+    hash = "sha256-hOGrDZy8s7hUnF9+quu5cCVWr1ZOqAgW5ma9uf/UKXI=";
     # Upstream sync-remote checks out these repositories before installing the workspace.
     postFetch = ''
       export SSL_CERT_FILE=${cacert}/etc/ssl/certs/ca-bundle.crt
@@ -52,7 +52,7 @@ rustPlatform.buildRustPackage (finalAttrs: {
     '';
   };
 
-  cargoHash = "sha256-2Wb5ZTV3pWBXSa0mn/gL9a/zAr2oLNjBgSdmChP2/CA=";
+  cargoHash = "sha256-GIMg/aT1a5uCclfsFB3Ux8KI0L9pqJDfzYJFQ/ztoPQ=";
   # vite-task embeds its tracing libraries through Cargo artifact dependencies.
   cargoDeps =
     (rustPlatform.fetchCargoVendor {
@@ -89,7 +89,7 @@ rustPlatform.buildRustPackage (finalAttrs: {
       ;
     pnpm = pnpm_12;
     fetcherVersion = 4;
-    hash = "sha256-AjjHJ7Iu9jTKwl1Uccx7m4j/zImqAKR4ZLFFMhc3VHQ=";
+    hash = "sha256-crDAyBL2PFLXBV+OGhddNYGJiMCtEYh2JZIK9uBnhgs=";
   };
 
   nativeBuildInputs = [
@@ -286,7 +286,7 @@ rustPlatform.buildRustPackage (finalAttrs: {
       pname = "vite-plus-rolldown";
       inherit (finalAttrs) version src;
       cargoRoot = "rolldown";
-      hash = "sha256-Ec7Q+P3bmUAUOinf5SPTkiBGEzXQq+xbWez8mPdRXjc=";
+      hash = "sha256-YIthUISzQ+pcaakj3QsLK/TAornBgkhPGDWoPF5ri30=";
     };
     rolldownVendor = rolldownCargoDeps.vendorStaging;
     updateScript = nix-update-script {
