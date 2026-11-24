@@ -9,6 +9,7 @@ let
     kvlibadwaita-kvantum = pkgs.callPackage ./pkgs/kvlibadwaita-kvantum.nix { };
     nix-hash = pkgs.callPackage ./pkgs/nix-hash { };
     symseek = pkgs.callPackage ./pkgs/symseek.nix { };
+    t3code = pkgs.callPackage ./pkgs/t3code { };
     t3code-bin = pkgs.callPackage ./pkgs/t3code-bin { channel = "stable"; };
     t3code-nightly-bin = t3code-bin.override { channel = "nightly"; };
     tauritavern = pkgs.callPackage ./pkgs/tauritavern.nix { };
